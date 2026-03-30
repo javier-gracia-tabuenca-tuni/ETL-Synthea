@@ -42,7 +42,7 @@ select
 	0,                                       
 	0,
 	null,
-	0,                                
+	"0",                                
 	null,   
 	lag(av.visit_occurrence_id) 
 	 over(partition by p.person_id
