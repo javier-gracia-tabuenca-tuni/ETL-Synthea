@@ -44,7 +44,7 @@ fv.visit_occurrence_id_new               visit_occurrence_id,
 fv.visit_occurrence_id_new + 1000000     visit_detail_id,
 pr.code                                  procedure_source_value,
 srctosrcvm.source_concept_id             procedure_source_concept_id,
-null                                     modifier_source_value
+cast(null as varchar)                    modifier_source_value
 from @synthea_schema.procedures pr
 join @cdm_schema.source_to_standard_vocab_map srctostdvm
   on srctostdvm.source_code             = pr.code

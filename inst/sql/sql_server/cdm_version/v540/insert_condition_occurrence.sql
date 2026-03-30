@@ -34,7 +34,7 @@ fv.visit_occurrence_id_new                 visit_occurrence_id,
 fv.visit_occurrence_id_new + 1000000       visit_detail_id,
 c.code                                     condition_source_value,
 srctosrcvm.source_concept_id               condition_source_concept_id,
-null                                       condition_status_source_value,
+cast(null as varchar)                      condition_status_source_value,
 0                                          condition_status_concept_id
 from @synthea_schema.conditions c
 join @cdm_schema.source_to_standard_vocab_map srctostdvm

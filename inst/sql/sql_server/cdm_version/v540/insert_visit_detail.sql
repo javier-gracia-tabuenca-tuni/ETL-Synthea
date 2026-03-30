@@ -52,8 +52,8 @@ select
 			 order by av.visit_start_date) + 1000000 preceding_visit_detail_id,
 	av.encounter_id                                  visit_detail_source_value,
 	0                                                visit_detail_source_concept_id,                                
-	null                                             admitted_from_source_value,   
-	null                                             discharged_to_source_value,
+	cast(null as varchar)                             admitted_from_source_value,   
+	cast(null as varchar)                             discharged_to_source_value,
 	null                                             parent_visit_detail_id,
 	av.visit_occurrence_id                           visit_occurrence_id
 from @cdm_schema.all_visits av

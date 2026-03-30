@@ -78,24 +78,23 @@ GROUP BY
 	, dt.drug_exposure_start_date
 )
 --------------------------------------------------------------------------------------------------------------
-, cteSubExposures(row_number, person_id, drug_concept_id, drug_sub_exposure_start_date, drug_sub_exposure_end_date, drug_exposure_count) AS
+, cteSubExposures(person_id, drug_concept_id, drug_sub_exposure_start_date, drug_sub_exposure_end_date, drug_exposure_count) AS
 (
-	SELECT ROW_NUMBER() OVER (PARTITION BY person_id, drug_concept_id, drug_sub_exposure_end_date ORDER BY person_id)
-		, person_id, drug_concept_id, MIN(drug_exposure_start_date) AS drug_sub_exposure_start_date, drug_sub_exposure_end_date, COUNT(*) AS drug_exposure_count
-	FROM cteDrugExposureEnds
-	GROUP BY person_id, drug_concept_id, drug_sub_exposure_end_date
-	--ORDER BY person_id, drug_concept_id
+    SELECT person_id, drug_concept_id, MIN(drug_exposure_start_date) AS drug_sub_exposure_start_date, drug_sub_exposure_end_date, COUNT(*) AS drug_exposure_count
+    FROM cteDrugExposureEnds
+    GROUP BY person_id, drug_concept_id, drug_sub_exposure_end_date
+    --ORDER BY person_id, drug_concept_id
 )
 --------------------------------------------------------------------------------------------------------------
 /*Everything above grouped exposures into sub_exposures if there was overlap between exposures.
  *So there was no persistence window. Now we can add the persistence window to calculate eras.
  */
 --------------------------------------------------------------------------------------------------------------
-, cteFinalTarget(row_number, person_id, ingredient_concept_id, drug_sub_exposure_start_date, drug_sub_exposure_end_date, drug_exposure_count, days_exposed) AS
+, cteFinalTarget(person_id, ingredient_concept_id, drug_sub_exposure_start_date, drug_sub_exposure_end_date, drug_exposure_count, days_exposed) AS
 (
-	SELECT row_number, person_id, drug_concept_id, drug_sub_exposure_start_date, drug_sub_exposure_end_date, drug_exposure_count
-		, datediff(day,drug_sub_exposure_start_date,drug_sub_exposure_end_date) AS days_exposed
-	FROM cteSubExposures
+    SELECT person_id, drug_concept_id, drug_sub_exposure_start_date, drug_sub_exposure_end_date, drug_exposure_count
+        , datediff(day,drug_sub_exposure_start_date,drug_sub_exposure_end_date) AS days_exposed
+    FROM cteSubExposures
 )
 --------------------------------------------------------------------------------------------------------------
 , cteEndDates (person_id, ingredient_concept_id, end_date) AS -- the magic
@@ -147,9 +146,9 @@ GROUP BY
 	, drug_exposure_count
 	, days_exposed
 )
+-- First, aggregate with GROUP BY
 SELECT
-    row_number()over(order by person_id) drug_era_id
-	, person_id
+	person_id
 	, drug_concept_id
 	, MIN(drug_sub_exposure_start_date) AS drug_era_start_date
 	, drug_era_end_date
@@ -159,5 +158,14 @@ INTO #tmp_de
 FROM cteDrugEraEnds dee
 GROUP BY person_id, drug_concept_id, drug_era_end_date;
 
-INSERT INTO @cdm_schema.drug_era(drug_era_id,person_id, drug_concept_id, drug_era_start_date, drug_era_end_date, drug_exposure_count, gap_days)
-SELECT * FROM #tmp_de;
+-- Then, apply row_number() in an outer query
+INSERT INTO @cdm_schema.drug_era(drug_era_id, person_id, drug_concept_id, drug_era_start_date, drug_era_end_date, drug_exposure_count, gap_days)
+SELECT
+	row_number() over(order by person_id) as drug_era_id
+	, person_id
+	, drug_concept_id
+	, drug_era_start_date
+	, drug_era_end_date
+	, drug_exposure_count
+	, gap_days
+FROM #tmp_de;

@@ -80,9 +80,9 @@ GROUP BY
 --------------------------------------------------------------------------------------------------------------
 
 
+-- First, aggregate with GROUP BY
 SELECT 
-    row_number()over(order by person_id) condition_era_id
-	, person_id
+	person_id
 	, condition_concept_id
 	, MIN(condition_start_date) AS condition_era_start_date
 	, era_end_date AS condition_era_end_date
@@ -92,5 +92,13 @@ FROM cteConditionEnds
 GROUP BY person_id, condition_concept_id, era_end_date
 ;
 
-INSERT INTO @cdm_schema.condition_era (condition_era_id,person_id, condition_concept_id, condition_era_start_date, condition_era_end_date, condition_occurrence_count)
-SELECT * FROM #tmp_ce;
+-- Then, apply row_number() in an outer query
+INSERT INTO @cdm_schema.condition_era (condition_era_id, person_id, condition_concept_id, condition_era_start_date, condition_era_end_date, condition_occurrence_count)
+SELECT 
+	row_number() over(order by person_id) as condition_era_id
+	, person_id
+	, condition_concept_id
+	, condition_era_start_date
+	, condition_era_end_date
+	, condition_occurrence_count
+FROM #tmp_ce;

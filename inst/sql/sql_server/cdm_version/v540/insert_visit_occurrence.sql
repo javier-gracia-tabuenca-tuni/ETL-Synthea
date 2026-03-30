@@ -41,9 +41,9 @@ select
 	av.encounter_id,
 	0,                                       
 	0,
-	null,
-	"0",                                
-	null,   
+	cast(null as varchar),
+	0,                                
+	cast(null as varchar),   
 	lag(av.visit_occurrence_id) 
 	 over(partition by p.person_id
 			  order by av.visit_start_date)

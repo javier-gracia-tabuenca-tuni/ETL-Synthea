@@ -62,7 +62,7 @@ select
 {@synthea_version == "3.0.0" | @synthea_version == "3.1.0" | @synthea_version == "3.2.0"  | @synthea_version == "3.3.0"} ? {
   pr.start                                 measurement_date,
   pr.start                                 measurement_datetime,
-  pr.start                                 measurement_time,
+  cast(pr.start as varchar)                    measurement_time,
 }
 
   32827                                 measurement_type_concept_id,
@@ -110,7 +110,7 @@ select
   srctostdvm.target_concept_id              measurement_concept_id,
   o.date                                    measurement_date,
   o.date                                    measurement_datetime,
-  o.date                                    measurement_time,
+  cast(o.date as varchar)                    measurement_time,
   32827                                  measurement_type_concept_id,
   0                                         operator_concept_id,
   case
